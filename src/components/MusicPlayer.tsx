@@ -6,11 +6,13 @@ import { Volume2, VolumeX, Music } from 'lucide-react';
 interface MusicPlayerProps {
   youtubeTracks?: string[];
   onTrackChange?: (trackIndex: number) => void;
+  autoPlay?: boolean;
 }
 
 export function MusicPlayer({ 
   youtubeTracks = ["https://www.youtube.com/embed/dQw4w9WgXcQ", "https://www.youtube.com/embed/6Dakd7EIgBE"],
-  onTrackChange
+  onTrackChange,
+  autoPlay = true
 }: MusicPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [iframeLoaded, setIframeLoaded] = useState(false);
@@ -65,6 +67,16 @@ export function MusicPlayer({
         events: {
           onReady: () => {
             console.log("YouTube player ready");
+            
+            // Auto-play when player is ready if autoPlay is true
+            if (autoPlay) {
+              setTimeout(() => {
+                if (playerRef.current && typeof playerRef.current.playVideo === 'function') {
+                  playerRef.current.playVideo();
+                  setIsPlaying(true);
+                }
+              }, 1000); // Small delay to ensure player is fully ready
+            }
           },
           onStateChange: (event: any) => {
             setIsPlaying(event.data === window.YT.PlayerState.PLAYING);

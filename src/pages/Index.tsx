@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import TypedText from '@/components/TypedText';
@@ -73,11 +72,13 @@ const Index = () => {
     console.log(`Now playing track: ${trackIndex + 1}`);
   }, []);
 
+  const showCamera = currentSlide === SlideState.FINAL;
+
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-romantic-light to-accent overflow-hidden flex flex-col items-center justify-center">
       <FloatingHearts />
-      <MusicPlayer youtubeTracks={YOUTUBE_BGM_URLS} onTrackChange={handleTrackChange} />
-      <CameraCapture friendImageUrl={FRIEND_IMAGE_URL} onCombinedImage={handleCombinedImage} />
+      <MusicPlayer youtubeTracks={YOUTUBE_BGM_URLS} onTrackChange={handleTrackChange} autoPlay={true} />
+      {showCamera && <CameraCapture friendImageUrl={FRIEND_IMAGE_URL} onCombinedImage={handleCombinedImage} />}
       <Confetti active={showConfetti} />
       
       <div className="relative w-full max-w-3xl h-screen max-h-[800px] mx-auto">
@@ -158,7 +159,7 @@ const Index = () => {
               />
             </div>
             <div className="text-sm mt-4 text-love-dark opacity-70">
-              (Click the camera button to take your own photo)
+              {showCamera && "(Click the camera button to take your own photo)"}
             </div>
           </div>
         </StorySlide>

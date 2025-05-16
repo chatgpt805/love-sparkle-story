@@ -53,7 +53,8 @@ export function MusicPlayer({ youtubeUrl = "https://www.youtube.com/embed/dQw4w9
     if (!iframeRef.current) return;
 
     try {
-      playerRef.current = new window.YT.Player(iframeRef.current, {
+      // Fix: Use type assertion to address the TypeScript error
+      playerRef.current = new (window.YT.Player as any)(iframeRef.current, {
         events: {
           onReady: () => {
             console.log("YouTube player ready");

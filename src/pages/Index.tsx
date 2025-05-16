@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import TypedText from '@/components/TypedText';
@@ -7,13 +8,16 @@ import MusicPlayer from '@/components/MusicPlayer';
 import Confetti from '@/components/Confetti';
 import StorySlide from '@/components/StorySlide';
 import CameraCapture from '@/components/CameraCapture';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 // Temporary placeholder URLs - Replace these with your actual URLs
 const FRIEND_IMAGE_URL = "https://images.unsplash.com/photo-1568602471122-7832951cc4c5?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3";
 const GIRLFRIEND_IMAGE_URL = "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3";
-const YOUTUBE_BGM_URLS = [
-  "https://www.youtube.com/embed/dQw4w9WgXcQ", // First romantic song
-  "https://www.youtube.com/embed/6Dakd7EIgBE"  // Second romantic song
+
+// Add your MP4 audio files here - replace these with actual audio file paths
+const AUDIO_TRACKS = [
+  "/romantic-bgm-1.mp3", // Replace with your actual audio files
+  "/romantic-bgm-2.mp3"
 ];
 
 enum SlideState {
@@ -40,6 +44,7 @@ const Index = () => {
   const [showConfetti, setShowConfetti] = useState(false);
   const [combinedImage, setCombinedImage] = useState<string | null>(null);
   const [currentTrack, setCurrentTrack] = useState(0);
+  const isMobile = useIsMobile();
 
   const handleNextSlide = useCallback(() => {
     setCurrentSlide(prev => (prev + 1) as SlideState);
@@ -74,10 +79,15 @@ const Index = () => {
 
   const showCamera = currentSlide === SlideState.FINAL;
 
+  // Get appropriate text size classes based on device
+  const getTitleClass = () => isMobile ? "text-3xl font-bold" : "text-4xl md:text-6xl font-bold";
+  const getSubtitleClass = () => isMobile ? "text-xl" : "text-xl md:text-2xl";
+  const getTextClass = () => isMobile ? "text-base" : "text-lg md:text-xl";
+
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-romantic-light to-accent overflow-hidden flex flex-col items-center justify-center">
       <FloatingHearts />
-      <MusicPlayer youtubeTracks={YOUTUBE_BGM_URLS} onTrackChange={handleTrackChange} autoPlay={true} />
+      <MusicPlayer audioTracks={AUDIO_TRACKS} onTrackChange={handleTrackChange} autoPlay={true} />
       {showCamera && <CameraCapture friendImageUrl={FRIEND_IMAGE_URL} onCombinedImage={handleCombinedImage} />}
       <Confetti active={showConfetti} />
       
@@ -88,7 +98,7 @@ const Index = () => {
           onNextSlide={typingComplete[SlideState.TITLE] ? handleNextSlide : undefined}
         >
           <motion.h1 
-            className="text-4xl md:text-6xl font-bold text-love-dark mb-6 text-center"
+            className={`${getTitleClass()} text-love-dark mb-6 text-center`}
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 1, delay: 0.5 }}
@@ -110,7 +120,7 @@ const Index = () => {
         >
           <div className="flex flex-col items-center">
             <motion.div 
-              className="w-64 h-64 md:w-80 md:h-80 rounded-full overflow-hidden mb-6 border-4 border-white shadow-lg"
+              className="w-52 h-52 md:w-80 md:h-80 rounded-full overflow-hidden mb-6 border-4 border-white shadow-lg"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
@@ -121,7 +131,7 @@ const Index = () => {
                 className="w-full h-full object-cover" 
               />
             </motion.div>
-            <div className="text-xl md:text-2xl text-center text-love-dark">
+            <div className={`${getSubtitleClass()} text-center text-love-dark`}>
               <TypedText 
                 text="This is him..." 
                 delay={60}
@@ -139,7 +149,7 @@ const Index = () => {
         >
           <div className="flex flex-col items-center">
             <motion.div 
-              className="w-64 h-64 md:w-80 md:h-80 rounded-full overflow-hidden mb-6 border-4 border-white shadow-lg"
+              className="w-52 h-52 md:w-80 md:h-80 rounded-full overflow-hidden mb-6 border-4 border-white shadow-lg"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
@@ -150,7 +160,7 @@ const Index = () => {
                 className="w-full h-full object-cover" 
               />
             </motion.div>
-            <div className="text-xl md:text-2xl text-center text-love-dark">
+            <div className={`${getSubtitleClass()} text-center text-love-dark`}>
               <TypedText 
                 text="And this is the one who stole his heart..." 
                 delay={60}
@@ -171,7 +181,7 @@ const Index = () => {
         >
           <div className="w-full max-w-md">
             <motion.h2 
-              className="text-2xl md:text-3xl font-bold text-love-dark mb-8 text-center"
+              className={`${getSubtitleClass()} font-bold text-love-dark mb-8 text-center`}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5 }}
@@ -191,12 +201,12 @@ const Index = () => {
           onNextSlide={typingComplete[SlideState.MESSAGE] ? handleNextSlide : undefined}
         >
           <motion.div 
-            className="bg-white/70 backdrop-blur-sm p-6 md:p-8 rounded-lg shadow-lg max-w-md"
+            className="bg-white/70 backdrop-blur-sm p-6 md:p-8 rounded-lg shadow-lg max-w-md mx-4"
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5 }}
           >
-            <div className="text-lg md:text-xl text-center text-love-dark leading-relaxed">
+            <div className={`${getTextClass()} text-center text-love-dark leading-relaxed`}>
               <TypedText 
                 text="Will you be mine forever? If I have a chance, I will be yours for every part of my life with you."
                 delay={50}
@@ -213,12 +223,12 @@ const Index = () => {
           onNextSlide={combinedImage ? handleNextSlide : undefined}
         >
           <motion.div 
-            className="flex flex-col items-center"
+            className="flex flex-col items-center px-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5 }}
           >
-            <h2 className="text-2xl md:text-3xl font-bold text-love-dark mb-4 text-center">
+            <h2 className={`${getSubtitleClass()} font-bold text-love-dark mb-4 text-center`}>
               Look how perfect we are together
             </h2>
             {combinedImage ? (
@@ -243,16 +253,16 @@ const Index = () => {
           hasNextButton={false}
         >
           <motion.div 
-            className="flex flex-col items-center"
+            className="flex flex-col items-center px-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5 }}
           >
-            <h2 className="text-2xl md:text-4xl font-bold text-love-dark mb-8 text-center">
+            <h2 className={`${getTitleClass()} text-love-dark mb-8 text-center`}>
               Forever & Always
             </h2>
             <motion.button
-              className="text-5xl md:text-6xl hover:text-6xl md:hover:text-7xl transition-all duration-300 bg-transparent border-none cursor-pointer"
+              className="text-4xl md:text-6xl hover:text-5xl md:hover:text-7xl transition-all duration-300 bg-transparent border-none cursor-pointer"
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
               onClick={handleHeartClick}

@@ -2,6 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Camera } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface CameraCaptureProps {
   friendImageUrl: string;
@@ -14,14 +15,21 @@ const CameraCapture: React.FC<CameraCaptureProps> = ({ friendImageUrl, onCombine
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const isMobile = useIsMobile();
 
   // Request camera permission and setup stream
   const setupCamera = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: "user" },
+      const constraints = {
+        video: {
+          facingMode: "user",
+          width: { ideal: isMobile ? 1280 : 1920 },
+          height: { ideal: isMobile ? 720 : 1080 }
+        },
         audio: false
-      });
+      };
+      
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
       
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
@@ -99,24 +107,37 @@ const CameraCapture: React.FC<CameraCaptureProps> = ({ friendImageUrl, onCombine
     await Promise.all([friendImgLoaded, capturedImgLoaded]);
     
     // Set canvas size to fit both images side by side
-    canvas.width = friendImg.width + capturedImg.width;
-    canvas.height = Math.max(friendImg.height, capturedImg.height);
+    const maxHeight = Math.max(friendImg.height, capturedImg.height);
+    const scaledWidth = isMobile ? 300 : 400; // Smaller width for mobile
     
-    // Draw images side by side
-    context.drawImage(friendImg, 0, 0);
-    context.drawImage(capturedImg, friendImg.width, 0);
+    const scaledFriendWidth = scaledWidth;
+    const scaledFriendHeight = (friendImg.height / friendImg.width) * scaledFriendWidth;
+    
+    const scaledCapturedWidth = scaledWidth;
+    const scaledCapturedHeight = (capturedImg.height / capturedImg.width) * scaledCapturedWidth;
+    
+    // Set canvas dimensions
+    canvas.width = scaledFriendWidth + scaledCapturedWidth;
+    canvas.height = Math.max(scaledFriendHeight, scaledCapturedHeight) + 60; // Extra space for text
+    
+    // Draw images side by side with proper scaling
+    context.fillStyle = '#FFF';
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    
+    context.drawImage(friendImg, 0, 0, scaledFriendWidth, scaledFriendHeight);
+    context.drawImage(capturedImg, scaledFriendWidth, 0, scaledCapturedWidth, scaledCapturedHeight);
     
     // Add heart between images
-    context.font = '48px Arial';
+    context.font = isMobile ? '36px Arial' : '48px Arial';
     context.fillStyle = '#FF4757';
     context.textAlign = 'center';
-    context.fillText('❤️', friendImg.width / 2, canvas.height / 2);
+    context.fillText('❤️', scaledFriendWidth / 2, canvas.height / 2);
     
     // Draw text at the bottom
-    context.font = '24px Arial';
-    context.fillStyle = 'white';
+    context.font = isMobile ? '18px Arial' : '24px Arial';
+    context.fillStyle = '#FF4757';
     context.textAlign = 'center';
-    context.fillText('Made for each other', canvas.width / 2, canvas.height - 30);
+    context.fillText('Made for each other', canvas.width / 2, canvas.height - 20);
     
     // Convert to data URL and pass it back
     const combinedImageUrl = canvas.toDataURL('image/png');
@@ -166,11 +187,11 @@ const CameraCapture: React.FC<CameraCaptureProps> = ({ friendImageUrl, onCombine
                 className="absolute inset-0 w-full h-full object-cover" 
               />
             </div>
-            <div className="flex gap-4">
-              <Button onClick={handleClose} variant="outline">
+            <div className="flex gap-4 w-full justify-center">
+              <Button onClick={handleClose} variant="outline" className="w-1/3">
                 Cancel
               </Button>
-              <Button onClick={capturePhoto} variant="default">
+              <Button onClick={capturePhoto} variant="default" className="w-1/3">
                 Capture
               </Button>
             </div>
@@ -184,11 +205,11 @@ const CameraCapture: React.FC<CameraCaptureProps> = ({ friendImageUrl, onCombine
                 className="absolute inset-0 w-full h-full object-cover"
               />
             </div>
-            <div className="flex gap-4">
-              <Button onClick={handleClose} variant="outline">
+            <div className="flex gap-4 w-full justify-center">
+              <Button onClick={handleClose} variant="outline" className="w-1/3">
                 Cancel
               </Button>
-              <Button onClick={setupCamera} variant="default">
+              <Button onClick={setupCamera} variant="default" className="w-1/3">
                 Retake
               </Button>
             </div>

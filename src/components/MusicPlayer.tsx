@@ -1,109 +1,70 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Volume2, VolumeX, Music } from 'lucide-react';
 
 interface MusicPlayerProps {
-  youtubeTracks?: string[];
+  audioTracks?: string[];
   onTrackChange?: (trackIndex: number) => void;
   autoPlay?: boolean;
 }
 
 export function MusicPlayer({ 
-  youtubeTracks = ["https://www.youtube.com/embed/dQw4w9WgXcQ", "https://www.youtube.com/embed/6Dakd7EIgBE"],
+  audioTracks = [],
   onTrackChange,
   autoPlay = true
 }: MusicPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
-  const [iframeLoaded, setIframeLoaded] = useState(false);
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
-  const iframeRef = useRef<HTMLIFrameElement | null>(null);
-  const playerRef = useRef<any>(null);
-
-  // Extract video ID from YouTube URL
-  const getYoutubeVideoId = (url: string) => {
-    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
-    const match = url.match(regExp);
-    return (match && match[2].length === 11) ? match[2] : 'dQw4w9WgXcQ'; // default video ID
-  };
-
-  const videoId = getYoutubeVideoId(youtubeTracks[currentTrackIndex]);
-  const embedUrl = `https://www.youtube.com/embed/${videoId}?enablejsapi=1&origin=${window.location.origin}&autoplay=0&controls=0&disablekb=1&fs=0&modestbranding=1&rel=0`;
-
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  
   useEffect(() => {
-    // Initialize YouTube API
-    if (!window.YT) {
-      const tag = document.createElement('script');
-      tag.src = 'https://www.youtube.com/iframe_api';
-      const firstScriptTag = document.getElementsByTagName('script')[0];
-      firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
-
-      window.onYouTubeIframeAPIReady = () => {
-        initPlayer();
-      };
-    } else {
-      initPlayer();
-    }
-
-    return () => {
-      if (playerRef.current) {
-        try {
-          if (typeof playerRef.current.stopVideo === 'function') {
-            playerRef.current.stopVideo();
-          }
-        } catch (e) {
-          console.error("Error stopping YouTube video:", e);
-        }
+    // Create audio element when component mounts
+    const audio = new Audio();
+    audioRef.current = audio;
+    
+    // Setup event listeners
+    audio.addEventListener('ended', playNextTrack);
+    
+    // Set initial track
+    if (audioTracks.length > 0) {
+      audio.src = audioTracks[currentTrackIndex];
+      if (autoPlay) {
+        audio.play().catch(e => {
+          console.log("Autoplay prevented:", e);
+        });
+        setIsPlaying(true);
       }
-    };
-  }, [videoId, iframeLoaded]);
-
-  const initPlayer = () => {
-    if (!iframeRef.current) return;
-
-    try {
-      // Fix: Use type assertion to address the TypeScript error
-      playerRef.current = new (window.YT.Player as any)(iframeRef.current, {
-        events: {
-          onReady: () => {
-            console.log("YouTube player ready");
-            
-            // Auto-play when player is ready if autoPlay is true
-            if (autoPlay) {
-              setTimeout(() => {
-                if (playerRef.current && typeof playerRef.current.playVideo === 'function') {
-                  playerRef.current.playVideo();
-                  setIsPlaying(true);
-                }
-              }, 1000); // Small delay to ensure player is fully ready
-            }
-          },
-          onStateChange: (event: any) => {
-            setIsPlaying(event.data === window.YT.PlayerState.PLAYING);
-            
-            // When video ends (state = 0), play next track
-            if (event.data === window.YT.PlayerState.ENDED) {
-              playNextTrack();
-            }
-          },
-          onError: (e: any) => {
-            console.error("YouTube player error:", e);
-          }
-        }
-      });
-    } catch (e) {
-      console.error("Error initializing YouTube player:", e);
     }
-  };
-
+    
+    return () => {
+      // Clean up
+      audio.removeEventListener('ended', playNextTrack);
+      audio.pause();
+      audioRef.current = null;
+    };
+  }, []);
+  
+  // Update audio source when track index changes
+  useEffect(() => {
+    if (audioRef.current && audioTracks.length > 0) {
+      audioRef.current.src = audioTracks[currentTrackIndex];
+      if (isPlaying) {
+        audioRef.current.play().catch(e => {
+          console.log("Error playing audio:", e);
+        });
+      }
+    }
+  }, [currentTrackIndex, audioTracks]);
+  
   const togglePlay = () => {
-    if (!playerRef.current) return;
-
+    if (!audioRef.current) return;
+    
     try {
       if (isPlaying) {
-        playerRef.current.pauseVideo();
+        audioRef.current.pause();
       } else {
-        playerRef.current.playVideo();
+        audioRef.current.play();
       }
       setIsPlaying(!isPlaying);
     } catch (e) {
@@ -112,7 +73,9 @@ export function MusicPlayer({
   };
 
   const playNextTrack = () => {
-    const nextIndex = (currentTrackIndex + 1) % youtubeTracks.length;
+    if (!audioTracks.length) return;
+    
+    const nextIndex = (currentTrackIndex + 1) % audioTracks.length;
     setCurrentTrackIndex(nextIndex);
     
     if (onTrackChange) {
@@ -120,16 +83,11 @@ export function MusicPlayer({
     }
   };
 
+  // Don't render anything if no audio tracks provided
+  if (audioTracks.length === 0) return null;
+
   return (
     <div className="fixed bottom-4 right-4 z-50 flex items-center gap-2">
-      <iframe
-        ref={iframeRef}
-        src={embedUrl}
-        title="Background music"
-        className="hidden"
-        allow="autoplay; encrypted-media"
-        onLoad={() => setIframeLoaded(true)}
-      />
       <Button
         onClick={togglePlay}
         variant="secondary"
@@ -138,14 +96,16 @@ export function MusicPlayer({
       >
         {isPlaying ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
       </Button>
-      <Button
-        onClick={playNextTrack}
-        variant="secondary"
-        size="icon"
-        className="rounded-full bg-romantic-dark/70 hover:bg-romantic-dark shadow-md"
-      >
-        <Music className="h-4 w-4" />
-      </Button>
+      {audioTracks.length > 1 && (
+        <Button
+          onClick={playNextTrack}
+          variant="secondary"
+          size="icon"
+          className="rounded-full bg-romantic-dark/70 hover:bg-romantic-dark shadow-md"
+        >
+          <Music className="h-4 w-4" />
+        </Button>
+      )}
     </div>
   );
 }

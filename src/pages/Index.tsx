@@ -11,13 +11,13 @@ import CameraCapture from '@/components/CameraCapture';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 // Temporary placeholder URLs - Replace these with your actual URLs
-const FRIEND_IMAGE_URL = "https://images.unsplash.com/photo-1568602471122-7832951cc4c5?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3";
-const GIRLFRIEND_IMAGE_URL = "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3";
+const FRIEND_IMAGE_URL = "https://i.ibb.co/XGwwsH5/489730275-1352627626039942-2053303874681916799-n.jpg";
+const GIRLFRIEND_IMAGE_URL = ""https://i.ibb.co/j9tB6htK/489730756-1054726273235237-3566932234516458035-n.jpg";
 
 // Add your MP4 audio files here - replace these with actual audio file paths
 const AUDIO_TRACKS = [
-  "/romantic-bgm-1.mp3", // Replace with your actual audio files
-  "/romantic-bgm-2.mp3"
+  "/music1.mp4", // Replace with your actual audio files
+  "/music2.mp4"
 ];
 
 enum SlideState {

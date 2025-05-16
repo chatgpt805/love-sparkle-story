@@ -1,11 +1,215 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import React, { useState, useCallback } from 'react';
+import { motion } from 'framer-motion';
+import TypedText from '@/components/TypedText';
+import LoveMeter from '@/components/LoveMeter';
+import FloatingHearts from '@/components/FloatingHearts';
+import MusicPlayer from '@/components/MusicPlayer';
+import Confetti from '@/components/Confetti';
+import StorySlide from '@/components/StorySlide';
+
+// Temporary placeholder URLs - Replace these with your actual URLs
+const FRIEND_IMAGE_URL = "https://images.unsplash.com/photo-1568602471122-7832951cc4c5?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3";
+const GIRLFRIEND_IMAGE_URL = "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3";
+const YOUTUBE_BGM_URL = "https://www.youtube.com/embed/dQw4w9WgXcQ"; // Replace with actual romantic song URL
+
+enum SlideState {
+  TITLE = 0,
+  FRIEND = 1,
+  GIRLFRIEND = 2,
+  LOVE_METER = 3,
+  MESSAGE = 4,
+  FINAL = 5
+}
 
 const Index = () => {
+  const [currentSlide, setCurrentSlide] = useState<SlideState>(SlideState.TITLE);
+  const [typingComplete, setTypingComplete] = useState<Record<SlideState, boolean>>({
+    [SlideState.TITLE]: false,
+    [SlideState.FRIEND]: false,
+    [SlideState.GIRLFRIEND]: false,
+    [SlideState.LOVE_METER]: false,
+    [SlideState.MESSAGE]: false,
+    [SlideState.FINAL]: false
+  });
+  const [showConfetti, setShowConfetti] = useState(false);
+
+  const handleNextSlide = useCallback(() => {
+    setCurrentSlide(prev => (prev + 1) as SlideState);
+  }, []);
+
+  const handleTypingComplete = useCallback((slide: SlideState) => {
+    setTypingComplete(prev => ({
+      ...prev,
+      [slide]: true
+    }));
+  }, []);
+
+  const handleHeartClick = useCallback(() => {
+    setShowConfetti(true);
+    
+    // Stop confetti after 5 seconds
+    setTimeout(() => {
+      setShowConfetti(false);
+    }, 5000);
+  }, []);
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
+    <div className="relative min-h-screen bg-gradient-to-br from-romantic-light to-accent overflow-hidden flex flex-col items-center justify-center">
+      <FloatingHearts />
+      <MusicPlayer youtubeUrl={YOUTUBE_BGM_URL} />
+      <Confetti active={showConfetti} />
+      
+      <div className="relative w-full max-w-3xl h-screen max-h-[800px] mx-auto">
+        {/* Title Slide */}
+        <StorySlide 
+          isActive={currentSlide === SlideState.TITLE}
+          onNextSlide={typingComplete[SlideState.TITLE] ? handleNextSlide : undefined}
+        >
+          <motion.h1 
+            className="text-4xl md:text-6xl font-bold text-love-dark mb-6 text-center"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 1, delay: 0.5 }}
+          >
+            <TypedText 
+              text="A story about us..." 
+              delay={80} 
+              startTyping={true}
+              onComplete={() => handleTypingComplete(SlideState.TITLE)} 
+              className="text-center"
+            />
+          </motion.h1>
+        </StorySlide>
+
+        {/* Friend Photo Slide */}
+        <StorySlide 
+          isActive={currentSlide === SlideState.FRIEND}
+          onNextSlide={typingComplete[SlideState.FRIEND] ? handleNextSlide : undefined}
+        >
+          <div className="flex flex-col items-center">
+            <motion.div 
+              className="w-64 h-64 md:w-80 md:h-80 rounded-full overflow-hidden mb-6 border-4 border-white shadow-lg"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <img 
+                src={FRIEND_IMAGE_URL} 
+                alt="Friend" 
+                className="w-full h-full object-cover" 
+              />
+            </motion.div>
+            <div className="text-xl md:text-2xl text-center text-love-dark">
+              <TypedText 
+                text="This is him..." 
+                delay={60}
+                startTyping={currentSlide === SlideState.FRIEND}
+                onComplete={() => handleTypingComplete(SlideState.FRIEND)}
+              />
+            </div>
+          </div>
+        </StorySlide>
+
+        {/* Girlfriend Photo Slide */}
+        <StorySlide 
+          isActive={currentSlide === SlideState.GIRLFRIEND}
+          onNextSlide={typingComplete[SlideState.GIRLFRIEND] ? handleNextSlide : undefined}
+        >
+          <div className="flex flex-col items-center">
+            <motion.div 
+              className="w-64 h-64 md:w-80 md:h-80 rounded-full overflow-hidden mb-6 border-4 border-white shadow-lg"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <img 
+                src={GIRLFRIEND_IMAGE_URL} 
+                alt="Girlfriend" 
+                className="w-full h-full object-cover" 
+              />
+            </motion.div>
+            <div className="text-xl md:text-2xl text-center text-love-dark">
+              <TypedText 
+                text="And this is the one who stole his heart..." 
+                delay={60}
+                startTyping={currentSlide === SlideState.GIRLFRIEND}
+                onComplete={() => handleTypingComplete(SlideState.GIRLFRIEND)}
+              />
+            </div>
+          </div>
+        </StorySlide>
+
+        {/* Love Meter Slide */}
+        <StorySlide 
+          isActive={currentSlide === SlideState.LOVE_METER}
+          onNextSlide={typingComplete[SlideState.LOVE_METER] ? handleNextSlide : undefined}
+        >
+          <div className="w-full max-w-md">
+            <motion.h2 
+              className="text-2xl md:text-3xl font-bold text-love-dark mb-8 text-center"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5 }}
+            >
+              How much do I love you?
+            </motion.h2>
+            <LoveMeter 
+              startFilling={currentSlide === SlideState.LOVE_METER}
+              onComplete={() => handleTypingComplete(SlideState.LOVE_METER)}
+            />
+          </div>
+        </StorySlide>
+
+        {/* Message Slide */}
+        <StorySlide 
+          isActive={currentSlide === SlideState.MESSAGE}
+          onNextSlide={typingComplete[SlideState.MESSAGE] ? handleNextSlide : undefined}
+        >
+          <motion.div 
+            className="bg-white/70 backdrop-blur-sm p-6 md:p-8 rounded-lg shadow-lg max-w-md"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5 }}
+          >
+            <div className="text-lg md:text-xl text-center text-love-dark leading-relaxed">
+              <TypedText 
+                text="Will you be mine forever? If I have a chance, I will be yours for every part of my life with you."
+                delay={50}
+                startTyping={currentSlide === SlideState.MESSAGE}
+                onComplete={() => handleTypingComplete(SlideState.MESSAGE)}
+              />
+            </div>
+          </motion.div>
+        </StorySlide>
+
+        {/* Final Slide */}
+        <StorySlide 
+          isActive={currentSlide === SlideState.FINAL}
+          hasNextButton={false}
+        >
+          <motion.div 
+            className="flex flex-col items-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+          >
+            <h2 className="text-2xl md:text-4xl font-bold text-love-dark mb-8 text-center">
+              Forever & Always
+            </h2>
+            <motion.button
+              className="text-5xl md:text-6xl hover:text-6xl md:hover:text-7xl transition-all duration-300 bg-transparent border-none cursor-pointer"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={handleHeartClick}
+            >
+              ❤️
+            </motion.button>
+            <p className="mt-4 text-center text-love-dark">
+              Click the heart!
+            </p>
+          </motion.div>
+        </StorySlide>
       </div>
     </div>
   );

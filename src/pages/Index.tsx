@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import TypedText from '@/components/TypedText';
@@ -12,12 +11,12 @@ import { useIsMobile } from '@/hooks/use-mobile';
 
 // Temporary placeholder URLs - Replace these with your actual URLs
 const FRIEND_IMAGE_URL = "https://i.ibb.co/XGwwsH5/489730275-1352627626039942-2053303874681916799-n.jpg";
-const GIRLFRIEND_IMAGE_URL = ""https://i.ibb.co/j9tB6htK/489730756-1054726273235237-3566932234516458035-n.jpg";
+const GIRLFRIEND_IMAGE_URL = "https://i.ibb.co/j9tB6htK/489730756-1054726273235237-3566932234516458035-n.jpg";
 
 // Add your MP4 audio files here - replace these with actual audio file paths
 const AUDIO_TRACKS = [
-  "/music1.mp4", // Replace with your actual audio files
-  "/music2.mp4"
+  "/music.mp4", // Replace with your actual audio files
+  "/music.mp4"
 ];
 
 enum SlideState {

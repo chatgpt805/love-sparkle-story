@@ -7,11 +7,15 @@ import FloatingHearts from '@/components/FloatingHearts';
 import MusicPlayer from '@/components/MusicPlayer';
 import Confetti from '@/components/Confetti';
 import StorySlide from '@/components/StorySlide';
+import CameraCapture from '@/components/CameraCapture';
 
 // Temporary placeholder URLs - Replace these with your actual URLs
 const FRIEND_IMAGE_URL = "https://images.unsplash.com/photo-1568602471122-7832951cc4c5?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3";
 const GIRLFRIEND_IMAGE_URL = "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3";
-const YOUTUBE_BGM_URL = "https://www.youtube.com/embed/dQw4w9WgXcQ"; // Replace with actual romantic song URL
+const YOUTUBE_BGM_URLS = [
+  "https://www.youtube.com/embed/dQw4w9WgXcQ", // First romantic song
+  "https://www.youtube.com/embed/6Dakd7EIgBE"  // Second romantic song
+];
 
 enum SlideState {
   TITLE = 0,
@@ -19,7 +23,8 @@ enum SlideState {
   GIRLFRIEND = 2,
   LOVE_METER = 3,
   MESSAGE = 4,
-  FINAL = 5
+  COMBINED_PHOTO = 5,
+  FINAL = 6
 }
 
 const Index = () => {
@@ -30,9 +35,12 @@ const Index = () => {
     [SlideState.GIRLFRIEND]: false,
     [SlideState.LOVE_METER]: false,
     [SlideState.MESSAGE]: false,
+    [SlideState.COMBINED_PHOTO]: false,
     [SlideState.FINAL]: false
   });
   const [showConfetti, setShowConfetti] = useState(false);
+  const [combinedImage, setCombinedImage] = useState<string | null>(null);
+  const [currentTrack, setCurrentTrack] = useState(0);
 
   const handleNextSlide = useCallback(() => {
     setCurrentSlide(prev => (prev + 1) as SlideState);
@@ -54,10 +62,22 @@ const Index = () => {
     }, 5000);
   }, []);
 
+  const handleCombinedImage = useCallback((imageUrl: string) => {
+    setCombinedImage(imageUrl);
+    // Automatically move to combined photo slide
+    setCurrentSlide(SlideState.COMBINED_PHOTO);
+  }, []);
+
+  const handleTrackChange = useCallback((trackIndex: number) => {
+    setCurrentTrack(trackIndex);
+    console.log(`Now playing track: ${trackIndex + 1}`);
+  }, []);
+
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-romantic-light to-accent overflow-hidden flex flex-col items-center justify-center">
       <FloatingHearts />
-      <MusicPlayer youtubeUrl={YOUTUBE_BGM_URL} />
+      <MusicPlayer youtubeTracks={YOUTUBE_BGM_URLS} onTrackChange={handleTrackChange} />
+      <CameraCapture friendImageUrl={FRIEND_IMAGE_URL} onCombinedImage={handleCombinedImage} />
       <Confetti active={showConfetti} />
       
       <div className="relative w-full max-w-3xl h-screen max-h-[800px] mx-auto">
@@ -137,6 +157,9 @@ const Index = () => {
                 onComplete={() => handleTypingComplete(SlideState.GIRLFRIEND)}
               />
             </div>
+            <div className="text-sm mt-4 text-love-dark opacity-70">
+              (Click the camera button to take your own photo)
+            </div>
           </div>
         </StorySlide>
 
@@ -183,6 +206,36 @@ const Index = () => {
           </motion.div>
         </StorySlide>
 
+        {/* Combined Photo Slide */}
+        <StorySlide 
+          isActive={currentSlide === SlideState.COMBINED_PHOTO}
+          onNextSlide={combinedImage ? handleNextSlide : undefined}
+        >
+          <motion.div 
+            className="flex flex-col items-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+          >
+            <h2 className="text-2xl md:text-3xl font-bold text-love-dark mb-4 text-center">
+              Look how perfect we are together
+            </h2>
+            {combinedImage ? (
+              <div className="w-full max-w-md rounded-lg overflow-hidden shadow-lg mb-6">
+                <img 
+                  src={combinedImage} 
+                  alt="Combined Photos" 
+                  className="w-full h-auto"
+                />
+              </div>
+            ) : (
+              <div className="text-center p-8 bg-white/70 backdrop-blur-sm rounded-lg">
+                <p>Please use the camera button to take a photo</p>
+              </div>
+            )}
+          </motion.div>
+        </StorySlide>
+        
         {/* Final Slide */}
         <StorySlide 
           isActive={currentSlide === SlideState.FINAL}

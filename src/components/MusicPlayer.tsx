@@ -1,15 +1,20 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Volume2, VolumeX } from 'lucide-react';
+import { Volume2, VolumeX, Music } from 'lucide-react';
 
 interface MusicPlayerProps {
-  youtubeUrl?: string;
+  youtubeTracks?: string[];
+  onTrackChange?: (trackIndex: number) => void;
 }
 
-export function MusicPlayer({ youtubeUrl = "https://www.youtube.com/embed/dQw4w9WgXcQ" }: MusicPlayerProps) {
+export function MusicPlayer({ 
+  youtubeTracks = ["https://www.youtube.com/embed/dQw4w9WgXcQ", "https://www.youtube.com/embed/6Dakd7EIgBE"],
+  onTrackChange
+}: MusicPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [iframeLoaded, setIframeLoaded] = useState(false);
+  const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
   const playerRef = useRef<any>(null);
 
@@ -20,7 +25,7 @@ export function MusicPlayer({ youtubeUrl = "https://www.youtube.com/embed/dQw4w9
     return (match && match[2].length === 11) ? match[2] : 'dQw4w9WgXcQ'; // default video ID
   };
 
-  const videoId = getYoutubeVideoId(youtubeUrl);
+  const videoId = getYoutubeVideoId(youtubeTracks[currentTrackIndex]);
   const embedUrl = `https://www.youtube.com/embed/${videoId}?enablejsapi=1&origin=${window.location.origin}&autoplay=0&controls=0&disablekb=1&fs=0&modestbranding=1&rel=0`;
 
   useEffect(() => {
@@ -41,7 +46,9 @@ export function MusicPlayer({ youtubeUrl = "https://www.youtube.com/embed/dQw4w9
     return () => {
       if (playerRef.current) {
         try {
-          playerRef.current.stopVideo();
+          if (typeof playerRef.current.stopVideo === 'function') {
+            playerRef.current.stopVideo();
+          }
         } catch (e) {
           console.error("Error stopping YouTube video:", e);
         }
@@ -61,6 +68,11 @@ export function MusicPlayer({ youtubeUrl = "https://www.youtube.com/embed/dQw4w9
           },
           onStateChange: (event: any) => {
             setIsPlaying(event.data === window.YT.PlayerState.PLAYING);
+            
+            // When video ends (state = 0), play next track
+            if (event.data === window.YT.PlayerState.ENDED) {
+              playNextTrack();
+            }
           },
           onError: (e: any) => {
             console.error("YouTube player error:", e);
@@ -87,8 +99,17 @@ export function MusicPlayer({ youtubeUrl = "https://www.youtube.com/embed/dQw4w9
     }
   };
 
+  const playNextTrack = () => {
+    const nextIndex = (currentTrackIndex + 1) % youtubeTracks.length;
+    setCurrentTrackIndex(nextIndex);
+    
+    if (onTrackChange) {
+      onTrackChange(nextIndex);
+    }
+  };
+
   return (
-    <div className="fixed bottom-4 right-4 z-50">
+    <div className="fixed bottom-4 right-4 z-50 flex items-center gap-2">
       <iframe
         ref={iframeRef}
         src={embedUrl}
@@ -104,6 +125,14 @@ export function MusicPlayer({ youtubeUrl = "https://www.youtube.com/embed/dQw4w9
         className="rounded-full bg-romantic-dark/70 hover:bg-romantic-dark shadow-md"
       >
         {isPlaying ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+      </Button>
+      <Button
+        onClick={playNextTrack}
+        variant="secondary"
+        size="icon"
+        className="rounded-full bg-romantic-dark/70 hover:bg-romantic-dark shadow-md"
+      >
+        <Music className="h-4 w-4" />
       </Button>
     </div>
   );
